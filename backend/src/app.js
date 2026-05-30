@@ -59,10 +59,26 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/settings', settingsRoutes);
 
+function sendSpaIndex(res) {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+}
+
+/** Activation links must open the React app, not API JSON or host 404 */
+app.get('/activate/:token', (req, res, next) => {
+  if (config.serveFrontend && fs.existsSync(frontendDistPath)) {
+    return sendSpaIndex(res);
+  }
+  const base = config.frontendUrl?.replace(/\/$/, '');
+  if (base && !base.includes('localhost')) {
+    return res.redirect(302, `${base}/activate/${req.params.token}`);
+  }
+  next();
+});
+
 if (config.serveFrontend && fs.existsSync(frontendDistPath)) {
   app.use(express.static(frontendDistPath, { index: false }));
-  app.get(/^(?!\/api\/).*/, (_req, res) => {
-    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    sendSpaIndex(res);
   });
 }
 

@@ -1,5 +1,18 @@
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
+
+if (!process.env.DATABASE_URL?.trim()) {
+  console.error(
+    'DATABASE_URL is missing. Set it in backend/.env or run: $env:DATABASE_URL="your-neon-url"',
+  );
+  process.exit(1);
+}
 
 const prisma = new PrismaClient();
 
