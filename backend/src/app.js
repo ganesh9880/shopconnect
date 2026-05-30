@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { config, cloudinaryConfigStatus, isAllowedDevOrigin } from './config.js';
+import fs from 'fs';
+import path from 'path';
+import { config, cloudinaryConfigStatus, frontendDistPath, isAllowedDevOrigin } from './config.js';
 import { isCloudinaryEnabled } from './services/cloudinaryService.js';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
@@ -56,6 +58,13 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/settings', settingsRoutes);
+
+if (config.serveFrontend && fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath, { index: false }));
+  app.get(/^(?!\/api\/).*/, (_req, res) => {
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
 
 app.use((err, _req, res, _next) => {
   console.error(err);

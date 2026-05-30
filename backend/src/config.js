@@ -43,9 +43,15 @@ function parseCorsOrigins() {
   return [...new Set(list)];
 }
 
+/** Built React app (monorepo: backend/src -> ../../frontend/dist) */
+export const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
+
 export const config = {
   port: Number(process.env.PORT) || 3001,
   nodeEnv: env('NODE_ENV') || 'development',
+  /** Serve frontend/dist from Express (single Render web service) */
+  serveFrontend:
+    env('SERVE_FRONTEND') === 'true' || env('SERVE_FRONTEND') === '1',
   jwtSecret: env('JWT_SECRET') || 'dev-secret-change-in-production',
   jwtAdminExpires: env('JWT_ADMIN_EXPIRES') || '8h',
   customerSessionDays: Number(process.env.CUSTOMER_SESSION_DAYS) || 365,

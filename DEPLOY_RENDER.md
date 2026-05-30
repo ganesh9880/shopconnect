@@ -243,8 +243,10 @@ cd backend && node prisma/seed.js
 3. Paste into static site env as `VITE_API_URL`
 4. **Redeploy** static site (Vite bakes env at build time)
 
-**Build command:** `npm install && npm run build`  
+**Build command:** `npm install --include=dev && npm run build`  
 **Publish directory:** `dist`
+
+> **Important:** Root directory must be `frontend`, not the repo root. If you build from the repo root, only ~26 packages install and the build fails with `vite: not found`.
 
 **Then update backend** `FRONTEND_URL` to static site URL and redeploy API (for CORS + activation links).
 
@@ -327,7 +329,7 @@ Change default password after login.
 
 1. **New +** → **Static Site**
 2. Root: `frontend`
-3. Build: `npm install && npm run build`
+3. Build: `npm install --include=dev && npm run build`
 4. Publish: `dist`
 5. `VITE_API_URL` = your API URL from Step 4
 6. Deploy
@@ -414,7 +416,35 @@ See [ROLLBACK.md](./ROLLBACK.md).
 
 ---
 
-## 9. Final deliverable summary
+## 9. Build errors on Render
+
+### `sh: 1: vite: not found`
+
+**Cause:** The static site is building from the **repo root** (or frontend `node_modules` was never installed). Root `npm install` only installs the monorepo meta-package (~26 packages); Vite lives under `frontend/`.
+
+**Fix (recommended):** In Render → your static site → **Settings**:
+
+| Setting | Value |
+|---------|--------|
+| Root Directory | `frontend` |
+| Build Command | `npm install --include=dev && npm run build` |
+| Publish Directory | `dist` |
+
+Save, then **Manual Deploy** → Clear build cache & deploy.
+
+**Alternative:** Keep repo root as root directory and set build command to:
+
+```bash
+npm install && npm run build
+```
+
+The root `build` script runs `npm install --prefix frontend --include=dev` before `vite build`.
+
+**Also check:** Render sets `NODE_ENV=production` during builds. Without `--include=dev`, npm skips Vite (it used to be in `devDependencies`). Build tools are now regular `dependencies` in `frontend/package.json` so a plain `npm install` works too.
+
+---
+
+## 10. Final deliverable summary
 
 | Item | Detail |
 |------|--------|
