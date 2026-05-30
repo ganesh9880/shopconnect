@@ -58,6 +58,33 @@ The React app is **not** a Node server. It must be either:
 
 There is **no Start Command** on a Static Site.
 
+### Activate page blank / plain HTML / nothing loads
+
+**Cause:** `https://vastralayam.onrender.com` is a **Static Site**. It cannot run `/api`. If `VITE_API_URL` is empty, the app calls `/api/...` on the same host → Render returns `index.html` → activation breaks.
+
+**Fix:**
+
+1. Deploy a **Web Service** for `backend` (API), e.g. `https://vastralayam-api.onrender.com`
+2. Static Site → **Environment** → `VITE_API_URL` = `https://vastralayam-api.onrender.com` (no trailing slash)
+3. **Redeploy static site** (required — Vite bakes this at build time)
+4. API → `FRONTEND_URL` = `https://vastralayam.onrender.com` → redeploy API
+
+Test API: open `https://YOUR-API.onrender.com/api/health` — must show JSON `"ok": true`, not HTML.
+
+### Activation link shows “Not Found” (`/activate/...`)
+
+The React route exists, but the **host** must send `index.html` for that path.
+
+**On Render Static Site** → **Redirects/Rewrites** → Add:
+
+| Type | Source | Destination |
+|------|--------|-------------|
+| Rewrite | `/*` | `/index.html` |
+
+Redeploy the static site after saving.
+
+Also ensure **Admin → Customers** activation links use the **static site URL**, and API env **`FRONTEND_URL`** matches that URL (not the API URL unless you use one combined service with `SERVE_FRONTEND=true`).
+
 ---
 
 ## Option B — One Web Service (simplest if you only made one service)

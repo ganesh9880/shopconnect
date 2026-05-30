@@ -54,7 +54,10 @@ export default function Activate() {
   if (error && !info) {
     return (
       <AuthShell title="Activation">
-        <p className="text-red-700 text-sm text-center">{error}</p>
+        <p className="text-red-700 text-sm text-center whitespace-pre-wrap">{error}</p>
+        <Link to="/" className="theme-btn-secondary w-full mt-4 text-center block">
+          Back to home
+        </Link>
       </AuthShell>
     );
   }
