@@ -5,18 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.8",
+    "@vitejs/plugin-react": "^4.5.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
-    "shopconnect": "file:.."
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.1.8",
-    "@vitejs/plugin-react": "^4.5.2",
+    "shopconnect": "file:..",
     "tailwindcss": "^4.1.8",
     "vite": "^6.4.2"
   },
