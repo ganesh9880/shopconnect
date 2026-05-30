@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -36,48 +36,49 @@ model AdminUser {
 }
 
 model Customer {
-  id                String           @id @default(cuid())
-  customerCode      String           @unique
-  name              String
-  phone             String           @unique
-  address           String?
-  preferredCategory String?
-  notes             String?
-  openingBalance    Float            @default(0)
-  outstandingBalance Float           @default(0)
-  activationToken   String?          @unique
-  activationCode    String?
-  pinHash           String?
-  isActivated       Boolean          @default(false)
-  lastPurchaseAt    DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  sales             Sale[]
-  ledgerEntries     LedgerEntry[]
-  paymentRequests   PaymentRequest[]
-  sessions          Session[]
+  id                 String           @id @default(cuid())
+  customerCode       String           @unique
+  name               String
+  phone              String           @unique
+  address            String?
+  preferredCategory  String?
+  notes              String?
+  openingBalance     Float            @default(0)
+  outstandingBalance Float            @default(0)
+  activationToken    String?          @unique
+  activationCode     String?
+  pinHash            String?
+  isActivated        Boolean          @default(false)
+  lastPurchaseAt     DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  sales              Sale[]
+  ledgerEntries      LedgerEntry[]
+  paymentRequests    PaymentRequest[]
+  sessions           Session[]
 }
 
 model Product {
-  id            String         @id @default(cuid())
-  code          String         @unique
-  name          String
-  category      String
-  subcategory   String?
-  sellingPrice  Float
-  costPrice     Float
-  stockQuantity Int            @default(0)
-  description   String?
-  status        ProductStatus  @default(AVAILABLE)
-  isNewArrival  Boolean        @default(false)
-  isBestSeller  Boolean        @default(false)
-  lowStockThreshold Int        @default(5)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  images        ProductImage[]
-  saleItems     SaleItem[]
+  id                String         @id @default(cuid())
+  code              String         @unique
+  name              String
+  category          String
+  subcategory       String?
+  sellingPrice      Float
+  costPrice         Float
+  stockQuantity     Int            @default(0)
+  description       String?
+  status            ProductStatus  @default(AVAILABLE)
+  isNewArrival      Boolean        @default(false)
+  isBestSeller      Boolean        @default(false)
+  lowStockThreshold Int            @default(5)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  images            ProductImage[]
+  saleItems         SaleItem[]
 }
 
+/// `path` stores full Cloudinary HTTPS URL (legacy local paths supported in dev)
 model ProductImage {
   id        String  @id @default(cuid())
   productId String
@@ -134,16 +135,16 @@ model PaymentRequest {
 }
 
 model Session {
-  id               String     @id @default(cuid())
-  token            String     @unique
-  type             SessionType
-  adminUserId      String?
-  adminUser        AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
-  customerId       String?
-  customer         Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  id                String      @id @default(cuid())
+  token             String      @unique
+  type              SessionType
+  adminUserId       String?
+  adminUser         AdminUser?  @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  customerId        String?
+  customer          Customer?   @relation(fields: [customerId], references: [id], onDelete: Cascade)
   deviceFingerprint String?
-  expiresAt        DateTime
-  createdAt        DateTime   @default(now())
+  expiresAt         DateTime
+  createdAt         DateTime    @default(now())
 }
 
 model ShopConfig {
@@ -153,5 +154,6 @@ model ShopConfig {
   whatsapp  String?
   upiId     String?
   upiQrPath String?
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

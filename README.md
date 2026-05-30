@@ -12,9 +12,13 @@ Phase 1 MVP for **Sri Lakshmi Vastralayam** (*Where Trust Meets Tradition*): cus
 | Auth | JWT (admin password; customer phone + 4-digit PIN) |
 | Uploads | Multer + Sharp (local `uploads/`) |
 
-## Deploy to production
+## Deploy to production (free)
 
-See **[DEPLOY.md](./DEPLOY.md)** for requirements, VPS setup, HTTPS, PM2, and backups.
+See **[DEPLOY_RENDER.md](./DEPLOY_RENDER.md)** — Render + Neon PostgreSQL + Cloudinary (recommended, minimal cost).
+
+See **[DEPLOY.md](./DEPLOY.md)** — optional VPS + PM2 + Nginx (paid server, same PostgreSQL + Cloudinary stack).
+
+See **[ROLLBACK.md](./ROLLBACK.md)** if you need to revert a deployment.
 
 ## Quick start
 

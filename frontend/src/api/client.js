@@ -1,4 +1,5 @@
-const API = '/api';
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API = `${API_BASE}/api`;
 
 function authHeaders(body) {
   const token =
@@ -32,7 +33,6 @@ export async function apiForm(path, formData, method = 'POST') {
   return data;
 }
 
-/** @deprecated Use useShop().getWhatsAppUrl() or WhatsAppLink instead */
 export function shopWhatsapp(message) {
   const phone =
     import.meta.env.VITE_SHOP_WHATSAPP?.replace(/\D/g, '') || '';

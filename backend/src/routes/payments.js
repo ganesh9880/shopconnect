@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import path from 'path';
 import { prisma } from '../db.js';
 import { config } from '../config.js';
 import { requireAdmin, requireCustomer } from '../middleware/auth.js';
 import { paymentScreenshotUpload } from '../middleware/upload.js';
+import { storeImage } from '../services/imageService.js';
+import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import {
   approvePaymentRequest,
   rejectPaymentRequest,
@@ -12,14 +13,20 @@ import { normalizeWhatsAppNumber, whatsAppMeUrl } from '../utils/whatsapp.js';
 
 const router = Router();
 
+function enrichPayment(request) {
+  return {
+    ...request,
+    screenshotUrl: resolveMediaUrl(request.screenshotPath),
+  };
+}
+
 router.get('/shop-info', async (_req, res) => {
   try {
     const shop = await prisma.shopConfig.findUnique({ where: { id: 'default' } });
-    const qrPath = shop?.upiQrPath?.replace(/\\/g, '/');
     res.json({
       shopName: shop?.shopName || config.shopName,
       upiId: shop?.upiId || config.shopUpiId,
-      upiQrUrl: qrPath ? `/uploads/${qrPath}` : null,
+      upiQrUrl: resolveMediaUrl(shop?.upiQrPath),
       whatsapp: shop?.whatsapp || config.shopWhatsapp || '',
       whatsappConfigured: Boolean(
         normalizeWhatsAppNumber(shop?.whatsapp || config.shopWhatsapp),
@@ -37,7 +44,10 @@ router.get('/my', requireCustomer, async (req, res) => {
       where: { customerId: req.customer.id },
       orderBy: { createdAt: 'desc' },
     });
-    res.json({ outstandingAmount: customer.outstandingBalance, requests });
+    res.json({
+      outstandingAmount: customer.outstandingBalance,
+      requests: requests.map(enrichPayment),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -50,9 +60,10 @@ router.post(
   async (req, res) => {
     try {
       const { amount, transactionRef } = req.body;
-      const screenshotPath = req.file
-        ? path.join('payments', path.basename(req.file.path)).replace(/\\/g, '/')
-        : null;
+      let screenshotPath = null;
+      if (req.file) {
+        screenshotPath = await storeImage(req.file, 'payments');
+      }
 
       const request = await prisma.paymentRequest.create({
         data: {
@@ -70,7 +81,10 @@ router.post(
         `Payment Proof Submitted\nCustomer: ${req.customer.name}\nID: ${req.customer.customerCode}\nAmount: ₹${amount}`,
       );
 
-      res.status(201).json({ request, whatsappNotificationUrl: whatsappUrl });
+      res.status(201).json({
+        request: enrichPayment(request),
+        whatsappNotificationUrl: whatsappUrl,
+      });
     } catch (err) {
       res.status(400).json({ error: err.message });
     }
@@ -86,7 +100,7 @@ router.get('/pending', requireAdmin, async (_req, res) => {
         customer: { select: { id: true, name: true, customerCode: true, phone: true } },
       },
     });
-    res.json(requests);
+    res.json(requests.map(enrichPayment));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -101,7 +115,7 @@ router.get('/', requireAdmin, async (req, res) => {
       orderBy: { createdAt: 'desc' },
       include: { customer: true },
     });
-    res.json(requests);
+    res.json(requests.map(enrichPayment));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -110,7 +124,7 @@ router.get('/', requireAdmin, async (req, res) => {
 router.post('/:id/approve', requireAdmin, async (req, res) => {
   try {
     const updated = await approvePaymentRequest(req.params.id);
-    res.json(updated);
+    res.json(enrichPayment(updated));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -119,7 +133,7 @@ router.post('/:id/approve', requireAdmin, async (req, res) => {
 router.post('/:id/reject', requireAdmin, async (req, res) => {
   try {
     const updated = await rejectPaymentRequest(req.params.id, req.body.rejectionReason);
-    res.json(updated);
+    res.json(enrichPayment(updated));
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

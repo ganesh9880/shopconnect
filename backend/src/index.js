@@ -1,11 +1,14 @@
-import fs from 'fs';
 import app from './app.js';
-import { config } from './config.js';
+import { config, cloudinaryConfigStatus } from './config.js';
 
-if (!fs.existsSync(config.uploadDir)) {
-  fs.mkdirSync(config.uploadDir, { recursive: true });
-}
-
-app.listen(config.port, () => {
-  console.log(`Sri Lakshmi Vastralayam API running on http://localhost:${config.port}`);
+app.listen(config.port, '0.0.0.0', () => {
+  const c = cloudinaryConfigStatus();
+  console.log(`Sri Lakshmi Vastralayam API on port ${config.port} (${config.nodeEnv})`);
+  if (!c.enabled) {
+    console.warn(
+      '[Cloudinary] NOT configured — add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET to backend/.env',
+    );
+  } else {
+    console.log('[Cloudinary] OK —', config.cloudinary.cloudName);
+  }
 });

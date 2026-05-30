@@ -98,9 +98,9 @@ export default function AdminPayments() {
                 <p className="text-xs text-red-600 mt-1">{r.rejectionReason}</p>
               )}
             </div>
-            {r.screenshotPath && (
+            {(r.screenshotUrl || r.screenshotPath) && (
               <img
-                src={`/uploads/${r.screenshotPath}`}
+                src={r.screenshotUrl || r.screenshotPath}
                 alt="Payment proof"
                 className="w-36 h-36 object-cover rounded border"
               />

@@ -5,5 +5,9 @@ backend/.env
 backend/dev.db
 backend/dev.db-journal
 backend/uploads/
+backend/dev.db
+backend/prod.db
+frontend/.env
+backend/.env
 *.log
 .DS_Store

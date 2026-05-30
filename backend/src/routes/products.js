@@ -1,24 +1,20 @@
 import { Router } from 'express';
-import path from 'path';
 import { prisma } from '../db.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { productImagesUpload } from '../middleware/upload.js';
-import { compressProductImage } from '../services/imageService.js';
+import { storeImage } from '../services/imageService.js';
+import { deleteByUrl } from '../services/cloudinaryService.js';
+import { resolveMediaUrl } from '../utils/mediaUrl.js';
 import { computeProductStatus, syncProductStatus } from '../utils/productStatus.js';
 
 const router = Router();
-
-function imageUrl(img) {
-  const path = img.path.replace(/\\/g, '/');
-  return path.startsWith('/') ? path : `/uploads/${path}`;
-}
 
 function productWithUrls(_req, product) {
   return {
     ...product,
     images: product.images?.map((img) => ({
       ...img,
-      url: imageUrl(img),
+      url: resolveMediaUrl(img.path),
     })),
     computedStatus: computeProductStatus(product),
   };
@@ -33,9 +29,9 @@ router.get('/public', async (req, res) => {
     if (bestSellers === 'true') where.isBestSeller = true;
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { code: { contains: search } },
-        { description: { contains: search } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
     const products = await prisma.product.findMany({
@@ -161,7 +157,6 @@ function pickProductData(body) {
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const data = pickProductData(req.body);
-
     const product = await prisma.product.update({
       where: { id: req.params.id },
       data,
@@ -192,20 +187,16 @@ router.post(
       if (product.images.length + (req.files?.length || 0) > 5) {
         return res.status(400).json({ error: 'Maximum 5 images per product' });
       }
-      const subfolder = 'products';
-      const created = [];
       for (let i = 0; i < (req.files?.length || 0); i++) {
         const file = req.files[i];
-        const compressed = await compressProductImage(file.path);
-        const relPath = path.join(subfolder, path.basename(compressed)).replace(/\\/g, '/');
-        const img = await prisma.productImage.create({
+        const url = await storeImage(file, 'products');
+        await prisma.productImage.create({
           data: {
             productId: product.id,
-            path: relPath,
+            path: url,
             sortOrder: product.images.length + i,
           },
         });
-        created.push(img);
       }
       const updated = await prisma.product.findUnique({
         where: { id: product.id },
@@ -224,6 +215,7 @@ router.delete('/:id/images/:imageId', requireAdmin, async (req, res) => {
       where: { id: req.params.imageId, productId: req.params.id },
     });
     if (!image) return res.status(404).json({ error: 'Image not found' });
+    await deleteByUrl(image.path);
     await prisma.productImage.delete({ where: { id: image.id } });
     res.json({ ok: true });
   } catch (err) {

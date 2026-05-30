@@ -5,11 +5,12 @@ import { requireAdmin, requireCustomer } from '../middleware/auth.js';
 import { nextCustomerCode } from '../utils/customerCode.js';
 import { getLedgerSummary } from '../services/ledgerService.js';
 import { addLedgerEntry } from '../services/ledgerService.js';
+import { config } from '../config.js';
 
 const router = Router();
 
 function activationPayload(customer) {
-  const base = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const base = config.frontendUrl;
   return {
     activationLink: customer.activationToken
       ? `${base}/activate/${customer.activationToken}`
