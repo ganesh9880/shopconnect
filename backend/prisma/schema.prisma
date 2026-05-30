@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ProductStatus {
+  AVAILABLE
+  LOW_STOCK
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SessionType {
+  ADMIN
+  CUSTOMER
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  role         String    @default("SHOP_OWNER")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+}
+
+model Customer {
+  id                String           @id @default(cuid())
+  customerCode      String           @unique
+  name              String
+  phone             String           @unique
+  address           String?
+  preferredCategory String?
+  notes             String?
+  openingBalance    Float            @default(0)
+  outstandingBalance Float           @default(0)
+  activationToken   String?          @unique
+  activationCode    String?
+  pinHash           String?
+  isActivated       Boolean          @default(false)
+  lastPurchaseAt    DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  sales             Sale[]
+  ledgerEntries     LedgerEntry[]
+  paymentRequests   PaymentRequest[]
+  sessions          Session[]
+}
+
+model Product {
+  id            String         @id @default(cuid())
+  code          String         @unique
+  name          String
+  category      String
+  subcategory   String?
+  sellingPrice  Float
+  costPrice     Float
+  stockQuantity Int            @default(0)
+  description   String?
+  status        ProductStatus  @default(AVAILABLE)
+  isNewArrival  Boolean        @default(false)
+  isBestSeller  Boolean        @default(false)
+  lowStockThreshold Int        @default(5)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  images        ProductImage[]
+  saleItems     SaleItem[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  path      String
+  sortOrder Int     @default(0)
+}
+
+model Sale {
+  id         String     @id @default(cuid())
+  customerId String
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  total      Float
+  discount   Float      @default(0)
+  saleDate   DateTime   @default(now())
+  createdAt  DateTime   @default(now())
+  items      SaleItem[]
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  discount  Float   @default(0)
+  lineTotal Float
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  debit       Float    @default(0)
+  credit      Float    @default(0)
+  description String
+  entryDate   DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model PaymentRequest {
+  id              String               @id @default(cuid())
+  customerId      String
+  customer        Customer             @relation(fields: [customerId], references: [id])
+  amount          Float
+  transactionRef  String?
+  screenshotPath  String?
+  status          PaymentRequestStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime             @default(now())
+  reviewedAt      DateTime?
+}
+
+model Session {
+  id               String     @id @default(cuid())
+  token            String     @unique
+  type             SessionType
+  adminUserId      String?
+  adminUser        AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  customerId       String?
+  customer         Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  deviceFingerprint String?
+  expiresAt        DateTime
+  createdAt        DateTime   @default(now())
+}
+
+model ShopConfig {
+  id        String   @id @default("default")
+  shopName  String   @default("Sri Lakshmi Vastralayam")
+  tagline   String   @default("Where Trust Meets Tradition")
+  whatsapp  String?
+  upiId     String?
+  upiQrPath String?
+  updatedAt DateTime @updatedAt
+}

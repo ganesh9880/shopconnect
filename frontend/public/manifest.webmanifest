@@ -1,0 +1,19 @@
+{
+  "name": "Sri Lakshmi Vastralayam",
+  "short_name": "Vastralayam",
+  "description": "Where Trust Meets Tradition — textiles, ledger & orders",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0a09",
+  "theme_color": "#3d0f1a",
+  "display_override": ["standalone", "browser"],
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

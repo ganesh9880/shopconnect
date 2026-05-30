@@ -1,0 +1,273 @@
+@import 'tailwindcss';
+
+/* ─── Sri Lakshmi Vastralayam — traditional theme ─── */
+@theme {
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+
+  --color-cream: #faf6f0;
+  --color-cream-dark: #f0e6d8;
+  --color-maroon-50: #fdf5f5;
+  --color-maroon-100: #f9e8e8;
+  --color-maroon-200: #e8c4c4;
+  --color-maroon-600: #8b2942;
+  --color-maroon-700: #6e1f34;
+  --color-maroon-800: #521525;
+  --color-maroon-900: #3d0f1a;
+  --color-gold-300: #e8c97a;
+  --color-gold-400: #d4a853;
+  --color-gold-500: #c4952e;
+  --color-gold-600: #a67c1a;
+  --color-header: #0c0a09;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: #44403c;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Traditional cream background with soft warmth */
+.theme-page {
+  background-color: var(--color-cream);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(196, 149, 46, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(110, 31, 52, 0.05), transparent),
+    linear-gradient(180deg, var(--color-cream) 0%, var(--color-cream-dark) 100%);
+  min-height: 100vh;
+}
+
+.theme-header {
+  background: linear-gradient(180deg, #1a1210 0%, var(--color-header) 100%);
+  border-bottom: 2px solid rgba(212, 168, 83, 0.35);
+  box-shadow: 0 4px 20px rgba(61, 15, 26, 0.25);
+}
+
+.theme-card {
+  background: #fffefb;
+  border: 1px solid rgba(196, 149, 46, 0.35);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px rgba(82, 21, 37, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+}
+
+.theme-card-elevated {
+  background: linear-gradient(145deg, #ffffff 0%, #faf6f0 100%);
+  border: 1px solid rgba(196, 149, 46, 0.45);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(82, 21, 37, 0.1);
+}
+
+.theme-heading {
+  font-family: var(--font-display);
+  color: var(--color-maroon-800);
+  letter-spacing: 0.02em;
+}
+
+.theme-heading-lg {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--color-maroon-800);
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 768px) {
+  .theme-heading-lg {
+    font-size: 2.25rem;
+  }
+}
+
+.theme-subheading {
+  font-family: var(--font-display);
+  color: var(--color-gold-600);
+  font-style: italic;
+}
+
+.theme-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold-400) 20%,
+    var(--color-gold-500) 50%,
+    var(--color-gold-400) 80%,
+    transparent
+  );
+  margin: 1rem 0;
+}
+
+.theme-input {
+  width: 100%;
+  border: 1px solid rgba(196, 149, 46, 0.4);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: #fffefb;
+  font-size: 1rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: var(--color-maroon-600);
+  box-shadow: 0 0 0 3px rgba(110, 31, 52, 0.12);
+}
+
+.theme-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(180deg, var(--color-maroon-700) 0%, var(--color-maroon-800) 100%);
+  color: #fff;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-maroon-900);
+  box-shadow: 0 2px 8px rgba(82, 21, 37, 0.25);
+  touch-action: manipulation;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.theme-btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.theme-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.theme-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.625rem 1.25rem;
+  background: transparent;
+  color: var(--color-maroon-800);
+  font-weight: 500;
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-gold-500);
+  touch-action: manipulation;
+}
+
+.theme-btn-secondary:hover {
+  background: rgba(196, 149, 46, 0.12);
+}
+
+.theme-btn-ghost {
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  color: #57534e;
+  border-radius: 0.5rem;
+  touch-action: manipulation;
+}
+
+.theme-btn-ghost:hover {
+  background: rgba(110, 31, 52, 0.06);
+}
+
+.theme-admin-main {
+  background: linear-gradient(180deg, #f5f0e8 0%, #ebe3d6 100%);
+}
+
+.theme-badge-gold {
+  background: rgba(196, 149, 46, 0.15);
+  color: var(--color-gold-600);
+  border: 1px solid rgba(196, 149, 46, 0.35);
+}
+
+.theme-auth-frame {
+  background: linear-gradient(160deg, #fffefb 0%, #faf6f0 50%, #f5ebe0 100%);
+  border: 2px solid rgba(196, 149, 46, 0.5);
+  border-radius: 1rem;
+  box-shadow:
+    0 0 0 4px rgba(82, 21, 37, 0.06),
+    0 16px 48px rgba(61, 15, 26, 0.2);
+}
+
+.theme-auth-bg {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(212, 168, 83, 0.15) 0%, transparent 55%),
+    linear-gradient(165deg, var(--color-maroon-900) 0%, var(--color-maroon-800) 40%, #1a1210 100%);
+  min-height: 100vh;
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-pad {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.page-main {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.page-main-with-bottom-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+}
+
+@media (min-width: 768px) {
+  .page-main-with-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .table-scroll {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.table-scroll table {
+  min-width: 520px;
+}
+
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .theme-input {
+    font-size: 16px;
+  }
+}
+
+@media (display-mode: standalone) {
+  input,
+  textarea,
+  select {
+    user-select: auto;
+  }
+}
