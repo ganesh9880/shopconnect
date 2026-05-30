@@ -1,15 +1,45 @@
-function resolveApiBase() {
+let apiBaseCache = null;
+let apiBasePromise = null;
+
+async function loadApiBase() {
+  if (apiBaseCache !== null) return apiBaseCache;
+
   const fromEnv = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
-  if (fromEnv) return fromEnv;
-  // Local dev: Vite proxies /api
-  if (import.meta.env.DEV) return '';
-  // Combined deploy (API + UI same Web Service): same origin
-  if (typeof window !== 'undefined') return window.location.origin;
-  return '';
+  if (fromEnv) {
+    apiBaseCache = fromEnv;
+    return apiBaseCache;
+  }
+
+  if (import.meta.env.DEV) {
+    apiBaseCache = '';
+    return apiBaseCache;
+  }
+
+  try {
+    const res = await fetch('/config.json', { cache: 'no-store' });
+    const cfg = await res.json();
+    const fromFile = (cfg.apiUrl || '').trim().replace(/\/$/, '');
+    if (fromFile) {
+      apiBaseCache = fromFile;
+      return apiBaseCache;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  throw new Error(
+    'Shop API URL is not configured. On Render Static Site: set VITE_API_URL to your Web Service URL (where /api/health returns JSON), save, then redeploy the static site.',
+  );
 }
 
-export const API_BASE = resolveApiBase();
-const API = `${API_BASE}/api`;
+export function getApiBase() {
+  if (!apiBasePromise) apiBasePromise = loadApiBase();
+  return apiBasePromise;
+}
+
+function apiUrl(path) {
+  return getApiBase().then((base) => `${base}/api${path}`);
+}
 
 function authHeaders(body) {
   const token =
@@ -26,8 +56,9 @@ async function parseApiResponse(res) {
   const type = res.headers.get('content-type') || '';
   const text = await res.text();
   if (text.trimStart().startsWith('<') || type.includes('text/html')) {
+    const base = await getApiBase().catch(() => '');
     throw new Error(
-      'API not reachable (got HTML). On Render Static Site set VITE_API_URL to your Web Service URL (e.g. https://your-api.onrender.com), then redeploy.',
+      `API returned HTML instead of JSON. VITE_API_URL is wrong or missing. Current API base: "${base || '(not set)'}". Use your Web Service URL (where /api/health shows JSON), not the static shop URL.`,
     );
   }
   try {
@@ -37,26 +68,18 @@ async function parseApiResponse(res) {
   }
 }
 
-function networkError(path, err) {
-  const target = `${API}${path}`;
-  const hint =
-    !import.meta.env.VITE_API_URL && import.meta.env.PROD
-      ? ' Set VITE_API_URL on the Render Static Site to your API URL and redeploy. On the API, set FRONTEND_URL to this shop URL.'
-      : ' On the API service set FRONTEND_URL to this exact shop URL (https://…) and redeploy.';
-  return new Error(
-    `Cannot reach API at ${target}. ${err?.message || 'Network error'}.${hint}`,
-  );
-}
-
 export async function api(path, options = {}) {
+  const url = await apiUrl(path);
   let res;
   try {
-    res = await fetch(`${API}${path}`, {
+    res = await fetch(url, {
       ...options,
       headers: { ...authHeaders(options.body), ...options.headers },
     });
   } catch (err) {
-    throw networkError(path, err);
+    throw new Error(
+      `Cannot reach API at ${url}. ${err?.message || 'Network error'}. Set VITE_API_URL on the static site and FRONTEND_URL on the API, then redeploy both.`,
+    );
   }
   const data = await parseApiResponse(res);
   if (!res.ok) throw new Error(data.error || res.statusText);
@@ -64,11 +87,17 @@ export async function api(path, options = {}) {
 }
 
 export async function apiForm(path, formData, method = 'POST') {
-  const res = await fetch(`${API}${path}`, {
-    method,
-    headers: authHeaders(formData),
-    body: formData,
-  });
+  const url = await apiUrl(path);
+  let res;
+  try {
+    res = await fetch(url, {
+      method,
+      headers: authHeaders(formData),
+      body: formData,
+    });
+  } catch (err) {
+    throw new Error(`Cannot reach API at ${url}. ${err?.message || 'Network error'}`);
+  }
   const data = await parseApiResponse(res);
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;

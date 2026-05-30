@@ -46,6 +46,7 @@ staticSites:
     # --include=dev ensures vite/tailwind install (needed at build time)
     buildCommand: npm install --include=dev && npm run build
     staticPublishPath: dist
+    # Required: set VITE_API_URL to Web Service URL (e.g. https://vastralayam-api.onrender.com)
     routes:
       - type: rewrite
         source: /*

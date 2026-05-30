@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api } from '../../api/client';
+import { api, getApiBase } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import AuthShell from '../../components/traditional/AuthShell';
 import { Field, Input } from '../../components/admin/ui';
@@ -11,30 +11,26 @@ export default function Activate() {
   const [pin, setPin] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
+  const [apiHint, setApiHint] = useState('');
   const { loginCustomer } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!token || token === 'demo') return;
     let cancelled = false;
-    const timer = setTimeout(() => {
-      if (!cancelled) {
-        setError(
-          'Taking too long. Check VITE_API_URL on static site and FRONTEND_URL on API, then redeploy both.',
-        );
-      }
-    }, 12000);
-    api(`/auth/activate/${token}`)
-      .then((data) => {
+    (async () => {
+      try {
+        const base = await getApiBase();
+        if (cancelled) return;
+        setApiHint(base || '(same host /api)');
+        const data = await api(`/auth/activate/${token}`);
         if (!cancelled) setInfo(data);
-      })
-      .catch((e) => {
+      } catch (e) {
         if (!cancelled) setError(e.message);
-      })
-      .finally(() => clearTimeout(timer));
+      }
+    })();
     return () => {
       cancelled = true;
-      clearTimeout(timer);
     };
   }, [token]);
 
@@ -80,8 +76,11 @@ export default function Activate() {
 
   if (!info) {
     return (
-      <div className="theme-auth-bg min-h-screen flex items-center justify-center">
+      <div className="theme-auth-bg min-h-screen flex flex-col items-center justify-center p-4 gap-2">
         <p className="text-gold-400">Loading…</p>
+        {apiHint && (
+          <p className="text-stone-500 text-xs text-center max-w-sm">API: {apiHint}</p>
+        )}
       </div>
     );
   }
