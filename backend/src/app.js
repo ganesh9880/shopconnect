@@ -41,6 +41,8 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     shop: config.shopName,
     env: config.nodeEnv,
+    frontendUrl: config.frontendUrl,
+    corsOrigins: config.corsOrigins,
     storage: 'cloudinary',
     cloudinary: {
       ...cloudinary,

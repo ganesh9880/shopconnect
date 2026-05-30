@@ -15,11 +15,27 @@ export default function Activate() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token && token !== 'demo') {
-      api(`/auth/activate/${token}`)
-        .then(setInfo)
-        .catch((e) => setError(e.message));
-    }
+    if (!token || token === 'demo') return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) {
+        setError(
+          'Taking too long. Check VITE_API_URL on static site and FRONTEND_URL on API, then redeploy both.',
+        );
+      }
+    }, 12000);
+    api(`/auth/activate/${token}`)
+      .then((data) => {
+        if (!cancelled) setInfo(data);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e.message);
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [token]);
 
   async function handleSubmit(e) {

@@ -1,4 +1,14 @@
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+function resolveApiBase() {
+  const fromEnv = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+  if (fromEnv) return fromEnv;
+  // Local dev: Vite proxies /api
+  if (import.meta.env.DEV) return '';
+  // Combined deploy (API + UI same Web Service): same origin
+  if (typeof window !== 'undefined') return window.location.origin;
+  return '';
+}
+
+export const API_BASE = resolveApiBase();
 const API = `${API_BASE}/api`;
 
 function authHeaders(body) {
@@ -27,11 +37,27 @@ async function parseApiResponse(res) {
   }
 }
 
+function networkError(path, err) {
+  const target = `${API}${path}`;
+  const hint =
+    !import.meta.env.VITE_API_URL && import.meta.env.PROD
+      ? ' Set VITE_API_URL on the Render Static Site to your API URL and redeploy. On the API, set FRONTEND_URL to this shop URL.'
+      : ' On the API service set FRONTEND_URL to this exact shop URL (https://…) and redeploy.';
+  return new Error(
+    `Cannot reach API at ${target}. ${err?.message || 'Network error'}.${hint}`,
+  );
+}
+
 export async function api(path, options = {}) {
-  const res = await fetch(`${API}${path}`, {
-    ...options,
-    headers: { ...authHeaders(options.body), ...options.headers },
-  });
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, {
+      ...options,
+      headers: { ...authHeaders(options.body), ...options.headers },
+    });
+  } catch (err) {
+    throw networkError(path, err);
+  }
   const data = await parseApiResponse(res);
   if (!res.ok) throw new Error(data.error || res.statusText);
   return data;
